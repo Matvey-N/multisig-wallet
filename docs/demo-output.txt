@@ -1,0 +1,47 @@
+--- 1. Deploy a 2-of-3 wallet (owners: Alice, Bob, Carol) ---
+Wallet: 0x5FbDB2315678afecb367f032d93F642f64180aa3
+Owners: Alice, Bob, Carol
+Required confirmations: 2
+
+--- 2. Fund the wallet with 5 ETH ---
+  event Deposit(sender=Alice, amount=5.0 ETH, balance=5.0 ETH)
+
+--- 3. Alice submits: send 1 ETH to Recipient ---
+  event SubmitTransaction(owner=Alice, txId=0, to=Recipient, value=1.0 ETH, data=0x)
+
+--- 4. Alice confirms (1 of 2) ---
+  event ConfirmTransaction(owner=Alice, txId=0)
+
+--- 5. Bob tries to execute too early ---
+  reverted: NotEnoughConfirmations(confirmations=1, required=2)
+
+--- 6. Bob confirms (2 of 2), then changes his mind and revokes ---
+  event ConfirmTransaction(owner=Bob, txId=0)
+  event RevokeConfirmation(owner=Bob, txId=0)
+  confirmations now: 1
+
+--- 7. Carol confirms (2 of 2) and Carol executes ---
+  event ConfirmTransaction(owner=Carol, txId=0)
+  event ExecuteTransaction(owner=Carol, txId=0)
+  Recipient received: 1.0 ETH
+  Wallet balance:     4.0 ETH
+
+--- 8. Second execution of the same transaction is rejected ---
+  reverted: TxAlreadyExecuted
+
+--- 9. ERC20: the wallet sends 250 MOCK tokens ---
+  event SubmitTransaction(owner=Bob, txId=1, to=MockToken, value=0.0 ETH, data=0xa9059cbb00...)
+  event ConfirmTransaction(owner=Alice, txId=1)
+  event ConfirmTransaction(owner=Bob, txId=1)
+  event ExecuteTransaction(owner=Bob, txId=1)
+  Recipient token balance: 250 MOCK
+
+--- 10. Owners vote to add Dave as a fourth owner ---
+  event SubmitTransaction(owner=Alice, txId=2, to=Wallet, value=0.0 ETH, data=0x7065cb4800...)
+  event ConfirmTransaction(owner=Alice, txId=2)
+  event ConfirmTransaction(owner=Carol, txId=2)
+  event OwnerAdded(owner=Dave)
+  event ExecuteTransaction(owner=Alice, txId=2)
+  Owners now: Alice, Bob, Carol, Dave
+
+Done. Transactions in the wallet: 3
